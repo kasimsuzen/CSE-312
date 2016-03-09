@@ -21,7 +21,8 @@ public:
     void parseFile(string &filename);
     void printMemory();
     void cpuRun();
-
+    Memory& getMemory(int index);
+    Instruction& getInstruction(int index);
 private:
     vector<Memory> memory;
     vector<Instruction> instructions;
