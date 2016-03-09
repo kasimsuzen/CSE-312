@@ -25,8 +25,10 @@ public:
     void printMemory();
     void printInstructionList();
     void cpuRun();
+
     Memory& getMemory(int index);
     Instruction& getInstruction(int index);
+
     bool funcSET(const Instruction& inst);
     bool funcCPY(const Instruction& inst);
     bool funcCPYI(const Instruction& inst);

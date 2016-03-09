@@ -194,7 +194,7 @@ void Simulation::parseFile(string &fileName) {
             instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
         }
 
-        else if (temp.find("ADD") != string::npos){
+        else if (temp.find("ADD") != string::npos && temp.find("ADDI") == string::npos){
             temp = "ADD";
             firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
@@ -272,7 +272,53 @@ void Simulation::parseFile(string &fileName) {
 }
 
 void Simulation::cpuRun() {
+    bool flag = true,isLastJump = false;
+    int pCounter;
+    while(flag){
 
+        pCounter = memory[0].getValue();
+#ifdef DEBUG
+        cout << pCounter << endl;
+        cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
+#endif
+
+        if (instructions[pCounter].getInstruction().find("SET") != string::npos) {
+            funcSET(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("CPY") != string::npos) {
+            funcCPY(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("CPYI") != string::npos) {
+            funcCPYI(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("CPYI2") != string::npos) {
+            funcCPYI2(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("ADD") != string::npos) {
+            funcADD(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("ADDI") != string::npos) {
+            funcADDI(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("SUBI") != string::npos) {
+            funcSUBI(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("JIF") != string::npos){
+            isLastJump = funcJIF(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("SYS PARAMS") != string::npos) {
+            funcSYS(instructions[pCounter]);
+        }
+        else if(instructions[pCounter].getInstruction().find("HLT") != string::npos) {
+
+            break;
+        }
+        if(!isLastJump)
+            memory[0].setValue(memory[0].getValue() + 1);
+
+    }
+    cout << "Program has finished memory looks like this "<< endl;
+    printMemory();
 }
 
 Memory &Simulation::getMemory(int index) {
@@ -360,9 +406,12 @@ bool Simulation::funcJIF(const Instruction &inst) {
         return false;
     else{
         if(memory[inst.getFirstOperand()].getValue() <= 0){
-            memory[0].setValue(inst.getFirstOperand());
+            memory[0].setValue(inst.getSecondOperand());
+
+            return true;
         }
-        return true;
+        else
+            return false;
     }
 }
 
