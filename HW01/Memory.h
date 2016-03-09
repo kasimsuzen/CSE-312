@@ -8,6 +8,8 @@
 
 class Memory {
 public:
+    Memory();
+
     Memory(int indexData, int valueData);
     ~Memory();
 

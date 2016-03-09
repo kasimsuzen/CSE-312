@@ -28,3 +28,7 @@ int Memory::getValue() const {
 int Memory::getIndex() const {
     return index;
 }
+
+Memory::Memory() {
+
+}
