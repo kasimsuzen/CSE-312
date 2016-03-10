@@ -1,6 +1,9 @@
+//
+// Created by Kasım Süzen 111044034 on 07.03.2016
+//
 #include <iostream>
 #include <string>
-
+#include <cstdlib>
 #include "Simulation.h"
 #include "Instruction.h"
 #include "Memory.h"
