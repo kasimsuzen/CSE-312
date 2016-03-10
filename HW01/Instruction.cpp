@@ -1,7 +1,6 @@
 //
-// Created by Kasım Süzen on 07.03.2016.
+// Created by Kasım Süzen 111044034 on 07.03.2016
 //
-
 #include "Instruction.h"
 
 Instruction::Instruction(int i, string &s, int a, int b) {

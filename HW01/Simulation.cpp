@@ -1,5 +1,5 @@
 //
-// Created by Kasım Süzen on 07.03.2016.
+// Created by Kasım Süzen 111044034 on 07.03.2016
 //
 #include <iostream>
 #include <fstream>
@@ -281,7 +281,6 @@ void Simulation::cpuRun() {
             memory[0].setValue(memory[0].getValue() + 1);
         }
         if(isLastJump) {
-            printMemory();
             isLastJump = false;
         }
 
@@ -289,12 +288,21 @@ void Simulation::cpuRun() {
             cout << endl << "Memory last condition" << endl;
             printMemory();
             cout << endl << "Print a key to continue" << endl;
+            cout << pCounter << endl;
+            cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
+#ifdef _WIN32
+            system("pause");
+#else
             system("read");
+#endif
+
         }
 
         if(mode == 1) {
             cout << endl << "Memory last condition" << endl;
             printMemory();
+            cout << pCounter << endl;
+            cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
         }
 
         if (instructions[pCounter].getInstruction().find("SET") != string::npos) {
