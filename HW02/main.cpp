@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
-#include "Simulation.h"
+#include "Process.h"
 #include "Instruction.h"
 #include "Memory.h"
 
@@ -17,7 +17,7 @@ int main(int argc,char ** argv) {
 
     string filename(argv[1]);
 
-    Simulation sim(filename, atoi(argv[3]));
+    Process sim(filename, atoi(argv[3]));
     sim.cpuRun();
 
     return 0;

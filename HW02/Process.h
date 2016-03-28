@@ -12,17 +12,17 @@
 
 using namespace std;
 
-#ifndef HW01_SIMULATION_H
-#define HW01_SIMULATION_H
+#ifndef HW01_PROCESS_H
+#define HW01_PROCESS_H
 #define DATA_START "Begin Data Section"
 #define DATA_END "End Data Section"
 #define INSTR_START "Begin Instruction Section"
 #define INSTR_END "End Instruction Section"
 
-class Simulation {
+class Process {
 public:
-    Simulation(string &filename,int md);
-    ~Simulation();
+    Process(string &filename,int md);
+    ~Process();
     void parseFile(string &filename);
     void printMemory();
     void printInstructionList();
@@ -49,4 +49,4 @@ private:
 };
 
 
-#endif //HW01_SIMULATION_H
+#endif //HW01_PROCESS_H

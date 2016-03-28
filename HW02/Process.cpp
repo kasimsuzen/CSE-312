@@ -6,23 +6,23 @@
 #include <streambuf>
 #include <sstream>
 #include <cmath>
-#include "Simulation.h"
+#include "Process.h"
 #include "Instruction.h"
 #include "Memory.h"
 #include <stdlib.h>
 
-Simulation::Simulation(string &filename, int md) {
+Process::Process(string &filename, int md) {
     memory.clear();
     instructions.clear();
     parseFile(filename);
     mode=md;
 }
 
-Simulation::~Simulation() {
+Process::~Process() {
 
 }
 
-void Simulation::printMemory() {
+void Process::printMemory() {
 
     for (int i = 0; i < memory.size(); ++i)
     {
@@ -33,7 +33,7 @@ void Simulation::printMemory() {
     }
 }
 
-void Simulation::parseFile(string &fileName) {
+void Process::parseFile(string &fileName) {
     string fileContent;
     int i,j,dataStart,dataEnd,instructionStart,instructionEnd,index=0;
     ifstream fileStream;
@@ -271,7 +271,7 @@ void Simulation::parseFile(string &fileName) {
 
 }
 
-void Simulation::cpuRun() {
+void Process::cpuRun() {
     bool flag = true,isLastJump = false;
     int pCounter;
     while(flag){
@@ -290,11 +290,8 @@ void Simulation::cpuRun() {
             cout << endl << "Print a key to continue" << endl;
             cout << pCounter << endl;
             cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
-#ifdef _WIN32
-            system("pause");
-#else
+
             system("read");
-#endif
 
         }
 
@@ -342,21 +339,21 @@ void Simulation::cpuRun() {
     printMemory();
 }
 
-Memory &Simulation::getMemory(int index) {
+Memory &Process::getMemory(int index) {
     return memory[index];
 }
 
-Instruction &Simulation::getInstruction(int index) {
+Instruction &Process::getInstruction(int index) {
     return instructions[index];
 }
 
-void Simulation::printInstructionList() {
+void Process::printInstructionList() {
     for (int i = 0; i < instructions.size(); ++i) {
         cout << instructions[i].getIndex() << " " << instructions[i].getInstruction() << " " << instructions[i].getFirstOperand() << " " << instructions[i].getSecondOperand() << endl;
     }
 }
 
-bool Simulation::funcSET(const Instruction &inst) {
+bool Process::funcSET(const Instruction &inst) {
     if(memory.size() <= inst.getSecondOperand())
         return false;
     else{
@@ -365,7 +362,7 @@ bool Simulation::funcSET(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcCPY(const Instruction &inst) {
+bool Process::funcCPY(const Instruction &inst) {
     if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
@@ -374,7 +371,7 @@ bool Simulation::funcCPY(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcCPYI(const Instruction &inst) {
+bool Process::funcCPYI(const Instruction &inst) {
     if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
@@ -384,7 +381,7 @@ bool Simulation::funcCPYI(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcCPYI2(const Instruction &inst) {
+bool Process::funcCPYI2(const Instruction &inst) {
     if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
 
         return false;
@@ -395,7 +392,7 @@ bool Simulation::funcCPYI2(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcADD(const Instruction &inst) {
+bool Process::funcADD(const Instruction &inst) {
     if(memory.size() < inst.getSecondOperand())
         return false;
     else{
@@ -404,7 +401,7 @@ bool Simulation::funcADD(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcADDI(const Instruction &inst) {
+bool Process::funcADDI(const Instruction &inst) {
     if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
@@ -413,7 +410,7 @@ bool Simulation::funcADDI(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcSUBI(const Instruction &inst) {
+bool Process::funcSUBI(const Instruction &inst) {
     if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
@@ -422,7 +419,7 @@ bool Simulation::funcSUBI(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcJIF(const Instruction &inst) {
+bool Process::funcJIF(const Instruction &inst) {
     if(inst.getFirstOperand() > memory.size())
         return false;
     else{
@@ -436,11 +433,11 @@ bool Simulation::funcJIF(const Instruction &inst) {
     }
 }
 
-bool Simulation::funcHLT(const Instruction &inst) {
+bool Process::funcHLT(const Instruction &inst) {
     return true;
 }
 
-bool Simulation::funcSYS(const Instruction &inst) {
+bool Process::funcSYS(const Instruction &inst) {
     cerr << "This instruction is not implemented as it should not be(Reserved for next homework)" << endl;
     return false;
 }

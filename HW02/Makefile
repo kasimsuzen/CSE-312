@@ -1,7 +1,7 @@
 CC= g++
 CFLAGS= -c -Wall -std=c++11
 LDFLAGS=
-SOURCES= main.cpp Memory.cpp Instruction.cpp Simulation.cpp
+SOURCES= main.cpp Memory.cpp Instruction.cpp Process.cpp
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE= Simulate.exe
 
