@@ -12,8 +12,9 @@
 
 using namespace std;
 
-#ifndef HW01_PROCESS_H
-#define HW01_PROCESS_H
+#ifndef HW02_PROCESS_H
+#define HW02_PROCESS_H
+
 #define DATA_START "Begin Data Section"
 #define DATA_END "End Data Section"
 #define INSTR_START "Begin Instruction Section"
@@ -24,11 +25,9 @@ public:
     Process(string &filename,int md);
     ~Process();
     void parseFile(string &filename);
-    void printMemory();
     void printInstructionList();
     void cpuRun();
 
-    Memory& getMemory(int index);
     Instruction& getInstruction(int index);
 
     bool funcSET(const Instruction& inst);
@@ -43,10 +42,9 @@ public:
     bool funcSYS(const Instruction& inst);
 
 private:
-    vector<Memory> memory;
     vector<Instruction> instructions;
-    int mode;
+    int mode,basePointer,limitPointer,SysCallResult;
 };
 
 
-#endif //HW01_PROCESS_H
+#endif //HW02_PROCESS_H

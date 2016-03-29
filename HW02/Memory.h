@@ -2,9 +2,15 @@
 // Created by Kasım Süzen 111044034 on 07.03.2016
 //
 
-#ifndef HW01_MEMORY_H
-#define HW01_MEMORY_H
+#include <vector>
 
+using namespace std;
+
+#pragma once
+
+bool setMemory(int index, int value, int base, int limit);
+int getMemory(int index, int base, int limit);
+void printMemory();
 
 class Memory {
 public:
@@ -23,5 +29,6 @@ private:
     int value;
 };
 
-
-#endif //HW01_MEMORY_H
+namespace {
+    vector<Memory> memoryData;
+}
