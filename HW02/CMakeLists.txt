@@ -3,5 +3,5 @@ project(HW02)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall")
 
-set(SOURCE_FILES main.cpp Memory.cpp Instruction.cpp Process.cpp)
+set(SOURCE_FILES main.cpp Memory.cpp Instruction.cpp Process.cpp CPU.cpp)
 add_executable(HW02 ${SOURCE_FILES})
