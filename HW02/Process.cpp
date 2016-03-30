@@ -10,12 +10,18 @@
 #include "Process.h"
 #include "Instruction.h"
 #include "Memory.h"
+#include "CPU.h"
 #include <cstdlib>
+
+Process::Process() {
+    isFinished = false;
+}
 
 Process::Process(string &filename, int md) {
     instructions.clear();
     parseFile(filename);
     mode=md;
+    isFinished = false;
 }
 
 Process::~Process() {
@@ -83,19 +89,27 @@ void Process::parseFile(string &fileName) {
 
     string temp = DATA_START;
     vector<Memory> memTemp;
-    int spaceToJump=0;
+    int spaceToJump=0,charStart=0;
 
     for (int k = (int) (temp.length() + 3); k < dataEnd; ) {
         spaceToJump = 0;
+        charStart =0;
         j=k;
+        index = atoi(&fileContent.c_str()[k]);
         while(fileContent[j] != '\n')
             ++j;
 
-        index = atoi(&fileContent.c_str()[k]);
-        if(index != 0)
-            spaceToJump = (int) log10((double)(index));
+        if(fileContent.find("\"") != string::npos){
+            charStart = fileContent.substr(k,j).find("\"")+1;
+            memTemp.push_back(Memory(index,fileContent.c_str()[charStart]));
 
-        memTemp.push_back(Memory(index,atoi(&fileContent.c_str()[k + spaceToJump +2])));
+        }
+        else {
+            if (index != 0)
+                spaceToJump = (int) log10((double) (index));
+
+            memTemp.push_back(Memory(index, atoi(&fileContent.c_str()[k + spaceToJump + 2])));
+        }
         #ifdef DEBUG
             cout << k << " " << fileContent[k] << " " << index << " " << memTemp.getIndex() << " " << memTemp.getValue() << endl;
         #endif
@@ -104,13 +118,16 @@ void Process::parseFile(string &fileName) {
 
     }
 
-    basePointer = memTemp[2].getValue();
-    limitPointer = memTemp[3].getValue();
+    basePointer = CPU::indexOfMem;
+    limitPointer = memTemp.size() - 1;
+    CPU::indexOfMem += limitPointer;
 
-    vector<Memory>::iterator it = memTemp.begin();
+    for(i =0 ;i < memTemp.size(); ++i) {
+        setMemory(memTemp[i].getIndex(), memTemp[i].getValue(), basePointer, limitPointer);
+    }
 
-    for( ;it != memTemp.end(); ++it)
-        setMemory(it->getIndex(), it->getValue(), basePointer, limitPointer);
+    printMemory();
+    memTemp.clear();
 
     #ifdef DEBUG
         cout << "memtest" << endl;
@@ -245,9 +262,17 @@ void Process::parseFile(string &fileName) {
             temp = "HLT";
             instructions.push_back(Instruction(index,temp));
         }
-        else if (temp.find("SYS PARAMS") != string::npos){
-            temp = "SYS PARAMS";
+        else if (temp.find("CALL PRN") != string::npos){
+            temp = "CALL PRN";
+            instructions.push_back(Instruction(index,temp,atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3])));
+        }
+        else if(temp.find("CALL FORK") != string::npos){
+            temp = "CALL FORK";
             instructions.push_back(Instruction(index,temp));
+        }
+        else if(temp.find("CALL EXEC") != string::npos){
+            temp = "CALL EXEC";
+            instructions.push_back(Instruction(index,temp,atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3])));
         }
         else{
             cerr << "Unknown instruction " << temp << endl;
@@ -270,8 +295,8 @@ void Process::parseFile(string &fileName) {
 void Process::cpuRun() {
     bool flag = true,isLastJump = false;
     int pCounter;
+    printInstructionList();
     while(flag){
-
         pCounter = getMemory(0,basePointer,limitPointer);
         if(!isLastJump) {
             setMemory(0,getMemory(0,basePointer,limitPointer)+ 1,basePointer,limitPointer);
@@ -287,17 +312,14 @@ void Process::cpuRun() {
             cout << pCounter << endl;
             cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
 
-            system("read");
-
+            getchar();
         }
-
         if(mode == 1) {
             cout << endl << "Memory last condition" << endl;
             printMemory();
             cout << pCounter << endl;
             cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
         }
-
         if (instructions[pCounter].getInstruction().find("SET") != string::npos) {
             funcSET(instructions[pCounter]);
         }
@@ -322,15 +344,15 @@ void Process::cpuRun() {
         else if(instructions[pCounter].getInstruction().find("JIF") != string::npos){
             isLastJump = funcJIF(instructions[pCounter]);
         }
-        else if(instructions[pCounter].getInstruction().find("SYS PARAMS") != string::npos) {
-            funcSYS(instructions[pCounter]);
+        else if(instructions[pCounter].getInstruction().find("CALL PRN") != string::npos) {
+           
         }
         else if(instructions[pCounter].getInstruction().find("HLT") != string::npos) {
 
             break;
         }
-
     }
+    isFinished = true;
     cout << "Program has finished memoryData looks like this "<< endl;
     printMemory();
 }
@@ -340,48 +362,52 @@ Instruction &Process::getInstruction(int index) {
 }
 
 void Process::printInstructionList() {
+    cout << instructions.size() << endl;
     for (int i = 0; i < instructions.size(); ++i) {
+        cout << i << " ";
         cout << instructions[i].getIndex() << " " << instructions[i].getInstruction() << " " << instructions[i].getFirstOperand() << " " << instructions[i].getSecondOperand() << endl;
     }
+    cout << "end";
 }
 
 bool Process::funcSET(const Instruction &inst) {
-    setMemory(getMemory(inst.getSecondOperand(),basePointer,limitPointer),inst.getFirstOperand(),basePointer,limitPointer);
+    setMemory(inst.getSecondOperand() + basePointer,inst.getFirstOperand(),basePointer,limitPointer);
+    //cout << "second op" << getMemory(inst.getSecondOperand(),basePointer,limitPointer) << " " << endl;
     return true;
 
 }
 
 bool Process::funcCPY(const Instruction &inst) {
-    setMemory(inst.getSecondOperand(),getMemory(inst.getFirstOperand(),basePointer,limitPointer),basePointer,limitPointer);
+    setMemory(inst.getSecondOperand() + basePointer,getMemory(inst.getFirstOperand(),basePointer,limitPointer),basePointer,limitPointer);
     return true;
 }
 
 bool Process::funcCPYI(const Instruction &inst) {
     int tempAddress = getMemory(inst.getFirstOperand(),basePointer,limitPointer);
-    setMemory(getMemory(inst.getSecondOperand(),basePointer,limitPointer),getMemory(tempAddress,basePointer,limitPointer),basePointer,limitPointer);
+    setMemory(inst.getSecondOperand()+basePointer,getMemory(tempAddress,basePointer,limitPointer),basePointer,limitPointer);
     return true;
 }
 
 bool Process::funcCPYI2(const Instruction &inst) {
     int tempAddress = getMemory(inst.getSecondOperand(),basePointer,limitPointer);
-    setMemory(getMemory(tempAddress,basePointer,limitPointer),getMemory(inst.getFirstOperand(),basePointer,limitPointer),basePointer,limitPointer);
+    setMemory(tempAddress+basePointer,getMemory(inst.getFirstOperand(),basePointer,limitPointer),basePointer,limitPointer);
     return true;
 
 }
 
 bool Process::funcADD(const Instruction &inst) {
-    setMemory(getMemory(inst.getSecondOperand(),basePointer,limitPointer),getMemory(inst.getSecondOperand(),basePointer,limitPointer) + inst.getFirstOperand(),basePointer,limitPointer);
+    setMemory(inst.getSecondOperand() + basePointer,getMemory(inst.getSecondOperand(),basePointer,limitPointer) + inst.getFirstOperand(),basePointer,limitPointer);
     return true;
 }
 
 bool Process::funcADDI(const Instruction &inst) {
-    setMemory(getMemory(inst.getSecondOperand(),basePointer,limitPointer),getMemory(inst.getFirstOperand(),basePointer,limitPointer)
+    setMemory(inst.getSecondOperand() + basePointer,getMemory(inst.getFirstOperand(),basePointer,limitPointer)
                                                                           + getMemory(inst.getSecondOperand(),basePointer,limitPointer),basePointer,limitPointer);
     return true;
 }
 
 bool Process::funcSUBI(const Instruction &inst) {
-    setMemory(getMemory(inst.getSecondOperand(),basePointer,limitPointer),getMemory(inst.getFirstOperand(),basePointer,limitPointer)
+    setMemory(inst.getSecondOperand() + basePointer,getMemory(inst.getFirstOperand(),basePointer,limitPointer)
                                                                           - getMemory(inst.getSecondOperand(),basePointer,limitPointer),basePointer,limitPointer);
     return true;
 }
@@ -400,7 +426,6 @@ bool Process::funcHLT(const Instruction &inst) {
     return true;
 }
 
-bool Process::funcSYS(const Instruction &inst) {
-    cerr << "This instruction is not implemented as it should not be(Reserved for next homework)" << endl;
-    return false;
+bool Process::isHalted() {
+    return isFinished;
 }

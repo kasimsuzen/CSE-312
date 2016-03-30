@@ -22,13 +22,14 @@ using namespace std;
 
 class Process {
 public:
+    Process();
     Process(string &filename,int md);
     ~Process();
     void parseFile(string &filename);
     void printInstructionList();
     void cpuRun();
-
     Instruction& getInstruction(int index);
+    bool isHalted();
 
     bool funcSET(const Instruction& inst);
     bool funcCPY(const Instruction& inst);
@@ -39,11 +40,14 @@ public:
     bool funcSUBI(const Instruction& inst);
     bool funcJIF(const Instruction& inst);
     bool funcHLT(const Instruction& inst);
-    bool funcSYS(const Instruction& inst);
+    bool funcFORK(const Instruction& inst);
+    bool funcEXEC(const Instruction& inst);
+    bool funcPRN(const Instruction &inst);
 
 private:
     vector<Instruction> instructions;
     int mode,basePointer,limitPointer,SysCallResult;
+    bool isFinished;
 };
 
 
