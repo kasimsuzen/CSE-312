@@ -4,11 +4,16 @@
 
 #include <string>
 #include <vector>
+#include "Process.h"
 
 using namespace std;
 
 #ifndef HW02_CPU_H
 #define HW02_CPU_H
+
+namespace {
+    int elapsedTime = 0;
+}
 
 struct ProcessTable{
     string processName;
@@ -22,15 +27,20 @@ struct ProcessTable{
 
 class CPU{
 public:
-    CPU();
+    CPU(int md);
     ~CPU();
 
     void tick();
     bool isHalted();
 
-
+    static bool addProcess(string fileName, int pid, int md, int pcValue=0);
+    bool updateProcessList();
+    static vector<Memory> memoryData;
+    static int indexOfMem;
+    static vector<ProcessTable> processTable;
 private:
-    vector<ProcessTable> procTable;
+    vector<Process> loadedProcess;
+    int mode;
 };
 
 #endif //HW02_CPU_H

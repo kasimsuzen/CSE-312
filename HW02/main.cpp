@@ -5,6 +5,7 @@
 #include <string>
 #include <cstdlib>
 #include "CPU.h"
+#include "Memory.h"
 
 using namespace std;
 void usage();
@@ -14,6 +15,11 @@ int main(int argc,char ** argv) {
         usage();
 
     string filename(argv[1]);
+
+    printMemory();
+    CPU cpu(atoi(argv[3]));
+    cpu.addProcess(filename,0,2);
+    cpu.tick();
 /*
 
     Process sim(filename, atoi(argv[3]));

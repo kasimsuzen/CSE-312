@@ -10,6 +10,8 @@ using namespace std;
 
 bool setMemory(int index, int value, int base, int limit);
 int getMemory(int index, int base, int limit);
+bool eraseMemoryCells(int start,int stop);
+int sizeOfMemory();
 void printMemory();
 
 class Memory {
@@ -28,7 +30,3 @@ private:
     int index;
     int value;
 };
-
-namespace {
-    vector<Memory> memoryData;
-}
