@@ -170,7 +170,7 @@ Begin Instruction Section
 6 ADD 1 31
 7 SET 0 27 # j
 8 CPY 21 28 # size for second loop
-9 ADD 0 28
+9 ADD -1 28
 10 JIF 28 24 # jump first size decrement
 11 ADD -1 28
 12 CPYI 30 40 # 40 is temp for arr[j]
