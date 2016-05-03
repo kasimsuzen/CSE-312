@@ -3,9 +3,9 @@
 //
 #include <string>
 
-#ifndef HW01_INSTRUCTION_H
-#define HW01_INSTRUCTION_H
 using namespace std;
+
+#pragma once
 
 class Instruction {
 public:
@@ -28,6 +28,3 @@ private:
     int A;
     int B;
 };
-
-
-#endif //HW01_INSTRUCTION_H
