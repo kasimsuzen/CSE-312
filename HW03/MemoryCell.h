@@ -6,12 +6,12 @@
 #define HW01_MEMORY_H
 
 
-class Memory {
+class MemoryCell {
 public:
-    Memory();
+    MemoryCell();
 
-    Memory(int indexData, int valueData);
-    ~Memory();
+    MemoryCell(int indexData, int valueData);
+    ~MemoryCell();
 
     int getIndex() const;
     void setIndex(int index);
