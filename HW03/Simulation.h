@@ -8,12 +8,12 @@
 #include <vector>
 #include <string>
 #include "Instruction.h"
-#include "Memory.h"
+#include "MemoryCell.h"
 
 using namespace std;
 
-#ifndef HW01_SIMULATION_H
-#define HW01_SIMULATION_H
+#pragma once
+
 #define DATA_START "Begin Data Section"
 #define DATA_END "End Data Section"
 #define INSTR_START "Begin Instruction Section"
@@ -28,7 +28,7 @@ public:
     void printInstructionList();
     void cpuRun();
 
-    Memory& getMemory(int index);
+    int getMemory(int index);
     Instruction& getInstruction(int index);
 
     bool funcSET(const Instruction& inst);
@@ -43,10 +43,6 @@ public:
     bool funcSYS(const Instruction& inst);
 
 private:
-    vector<Memory> memory;
     vector<Instruction> instructions;
     int mode;
 };
-
-
-#endif //HW01_SIMULATION_H

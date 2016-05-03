@@ -8,13 +8,23 @@
 #include <cmath>
 #include "Simulation.h"
 #include "Instruction.h"
-#include "Memory.h"
+#include "MemoryCell.h"
+#include "PageTable.h"
 #include <stdlib.h>
 
+extern PageTable memoryManager;
+extern Disk myDisk;
+
 Simulation::Simulation(string &filename, int md) {
-    memory.clear();
     instructions.clear();
     parseFile(filename);
+    memoryManager.init();
+    cout << "memtest" << endl;
+    printMemory();
+    cout << "wowowo" << endl;
+    fflush(stdout);
+    fflush(stderr);
+
     mode=md;
 }
 
@@ -24,10 +34,10 @@ Simulation::~Simulation() {
 
 void Simulation::printMemory() {
 
-    for (int i = 0; i < memory.size(); ++i)
+    for (int i = 0; i < myDisk.size(); ++i)
     {
-        cout << memory[i].getIndex() <<"  "<< memory[i].getValue() <<" , ";
-        if(i%10==0){
+        cout << i <<"  "<< memoryManager.getMemory(i) <<" , ";
+        if(i%10==0 && i != 0){
             cout <<"\n";
         }
     }
@@ -53,6 +63,7 @@ void Simulation::parseFile(string &fileName) {
     // Empties and clear string stream
     strStream.str("");
     strStream.clear();
+    fileStream.close();
 
     // To erase 3 junk character
     //fileContent.erase(0,3);
@@ -93,10 +104,11 @@ void Simulation::parseFile(string &fileName) {
     }
 
     string temp = DATA_START;
-    Memory memTemp;
+    MemoryCell memTemp;
     int spaceToJump=0;
+    myDisk.readFile(fileName);
 
-    for (int k = (int) (temp.length() + 3); k < dataEnd; ) {
+/*    for (int k = (int) (temp.length() + 3); k < dataEnd; ) {
         spaceToJump = 0;
         j=k;
         while(fileContent[j] != '\n')
@@ -106,20 +118,15 @@ void Simulation::parseFile(string &fileName) {
         if(index != 0)
             spaceToJump = (int) log10((double)(index));
 
-        memTemp = Memory(index,atoi(&fileContent.c_str()[k + spaceToJump +2]));
+        memTemp = MemoryCell(index,atoi(&fileContent.c_str()[k + spaceToJump +2]));
         #ifdef DEBUG
             cout << k << " " << fileContent[k] << " " << index << " " << memTemp.getIndex() << " " << memTemp.getValue() << endl;
         #endif
 
-        memory.push_back(memTemp);
+//        memory.push_back(memTemp);
         k=j+1;
 
-    }
-
-    #ifdef DEBUG
-        cout << "memtest" << endl;
-        printMemory();
-    #endif
+    }*/
 
     temp = INSTR_START;
     int firstOperand,secondOperand,secondSpace;
@@ -276,30 +283,26 @@ void Simulation::cpuRun() {
     int pCounter;
     while(flag){
 
-        pCounter = memory[0].getValue();
+        pCounter = memoryManager.getMemory(0);
         if(!isLastJump) {
-            memory[0].setValue(memory[0].getValue() + 1);
+            memoryManager.setMemory(0,memoryManager.getMemory(0) + 1);
         }
         if(isLastJump) {
             isLastJump = false;
         }
 
         if(mode == 2){
-            cout << endl << "Memory last condition" << endl;
+            cout << endl << "MemoryCell last condition" << endl;
             printMemory();
-            cout << endl << "Print a key to continue" << endl;
+            cout << endl << "Press a key to continue" << endl;
             cout << pCounter << endl;
             cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
-#ifdef _WIN32
-            system("pause");
-#else
-            system("read");
-#endif
+            getchar();
 
         }
 
         if(mode == 1) {
-            cout << endl << "Memory last condition" << endl;
+            cout << endl << "Memory's last condition" << endl;
             printMemory();
             cout << pCounter << endl;
             cout << instructions[pCounter].getInstruction() << " " << instructions[pCounter].getFirstOperand() << " " << instructions[pCounter].getSecondOperand() << " " << instructions[pCounter].getIndex() << endl;
@@ -342,8 +345,8 @@ void Simulation::cpuRun() {
     printMemory();
 }
 
-Memory &Simulation::getMemory(int index) {
-    return memory[index];
+int Simulation::getMemory(int index) {
+    return memoryManager.getMemory(index);
 }
 
 Instruction &Simulation::getInstruction(int index) {
@@ -357,73 +360,124 @@ void Simulation::printInstructionList() {
 }
 
 bool Simulation::funcSET(const Instruction &inst) {
-    if(memory.size() <= inst.getSecondOperand())
+    if(memoryManager.size() <= inst.getSecondOperand())
         return false;
     else{
-        memory[inst.getSecondOperand()].setValue(inst.getFirstOperand());
+        memoryManager.setMemory(inst.getSecondOperand(),inst.getFirstOperand());
+        //memory[inst.getSecondOperand()].setValue(inst.getFirstOperand());
         return true;
     }
 }
 
 bool Simulation::funcCPY(const Instruction &inst) {
-    if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
+
+    if(inst.getFirstOperand() > memoryManager.size() || inst.getSecondOperand() > memoryManager.size())
+        return false;
+    else{
+        memoryManager.setMemory(inst.getSecondOperand(),memoryManager.getMemory(inst.getFirstOperand()));
+    }
+    /*if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
         memory[inst.getSecondOperand()].setValue(memory[inst.getFirstOperand()].getValue());
         return true;
-    }
+    }*/
 }
 
 bool Simulation::funcCPYI(const Instruction &inst) {
-    if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
+    if(inst.getFirstOperand() > memoryManager.size() || inst.getSecondOperand() > memoryManager.size())
+        return false;
+    else{
+        int tempAddress = memoryManager.getMemory(inst.getFirstOperand());
+        memoryManager.setMemory(inst.getSecondOperand(),memoryManager.getMemory(tempAddress));
+        return true;
+    }
+    /*if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
         int tempAddress = memory[inst.getFirstOperand()].getValue();
         memory[inst.getSecondOperand()].setValue(memory[tempAddress].getValue());
         return true;
-    }
+    }*/
 }
 
 bool Simulation::funcCPYI2(const Instruction &inst) {
-    if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
+    if(inst.getFirstOperand() > memoryManager.size() || inst.getSecondOperand() > memoryManager.size())
+        return false;
+    else{
+        int tempAddress = memoryManager.getMemory(inst.getSecondOperand());
+        memoryManager.setMemory(tempAddress,memoryManager.getMemory(inst.getFirstOperand()));
+        return true;
+    }
+    /*if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
 
         return false;
     else{
         int tempAddress = memory[inst.getSecondOperand()].getValue();
         memory[tempAddress].setValue(memory[inst.getFirstOperand()].getValue());
         return true;
-    }
+    }*/
 }
 
 bool Simulation::funcADD(const Instruction &inst) {
-    if(memory.size() < inst.getSecondOperand())
+    if (inst.getSecondOperand() > memoryManager.size())
+        return false;
+    else{
+        memoryManager.setMemory(inst.getSecondOperand(),memoryManager.getMemory(inst.getSecondOperand()) + inst.getFirstOperand());
+        return true;
+    }
+    /*if(memory.size() < inst.getSecondOperand())
         return false;
     else{
         memory[inst.getSecondOperand()].setValue(memory[inst.getSecondOperand()].getValue() + inst.getFirstOperand());
         return true;
-    }
+    }*/
 }
 
 bool Simulation::funcADDI(const Instruction &inst) {
-    if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
+    if(inst.getFirstOperand() > memoryManager.size() || inst.getSecondOperand() > memoryManager.size())
+        return false;
+    else{
+        memoryManager.setMemory(inst.getSecondOperand(),memoryManager.getMemory(inst.getFirstOperand()) +
+                memoryManager.getMemory(inst.getSecondOperand()));
+        return true;
+    }
+    /*if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
         memory[inst.getSecondOperand()].setValue(memory[inst.getFirstOperand()].getValue() + memory[inst.getSecondOperand()].getValue());
         return true;
-    }
+    }*/
 }
 
 bool Simulation::funcSUBI(const Instruction &inst) {
-    if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
+    if(inst.getFirstOperand() > memoryManager.size() || inst.getSecondOperand() > memoryManager.size())
+        return false;
+    else {
+        memoryManager.setMemory(inst.getSecondOperand(),memoryManager.getMemory(inst.getFirstOperand()) -
+                memoryManager.getMemory(inst.getSecondOperand()));
+        return true;
+    }
+    /*if(inst.getFirstOperand() > memory.size() || inst.getSecondOperand() > memory.size())
         return false;
     else{
         memory[inst.getSecondOperand()].setValue(memory[inst.getFirstOperand()].getValue() - memory[inst.getSecondOperand()].getValue());
         return true;
-    }
+    }*/
 }
 
 bool Simulation::funcJIF(const Instruction &inst) {
-    if(inst.getFirstOperand() > memory.size())
+    if(inst.getFirstOperand() > memoryManager.size())
+        return false;
+    else {
+        if(memoryManager.getMemory(inst.getFirstOperand()) <= 0) {
+            memoryManager.setMemory(0, inst.getSecondOperand());
+            return true;
+        }
+        else
+            return false;
+    }
+    /* if(inst.getFirstOperand() > memory.size())
         return false;
     else{
         if(memory[inst.getFirstOperand()].getValue() <= 0){
@@ -433,7 +487,7 @@ bool Simulation::funcJIF(const Instruction &inst) {
         }
         else
             return false;
-    }
+    }*/
 }
 
 bool Simulation::funcHLT(const Instruction &inst) {
