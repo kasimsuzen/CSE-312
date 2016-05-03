@@ -7,6 +7,7 @@
 #include <streambuf>
 #include <sstream>
 #include <cmath>
+#include <string>
 #include "Process.h"
 #include "Instruction.h"
 #include "Memory.h"
@@ -22,6 +23,7 @@ Process::Process(string &filename, int md) {
     parseFile(filename);
     mode=md;
     isFinished = false;
+    sourceFileName = filename;
 }
 
 Process::~Process() {
@@ -29,8 +31,10 @@ Process::~Process() {
 }
 
 void Process::parseFile(string &fileName) {
+    string instructionTemp(INSTR_START);
     string fileContent;
     int i,j,dataStart,dataEnd,instructionStart,instructionEnd,index=0;
+    sourceFileName = fileName;
     ifstream fileStream;
     fileStream.open(fileName.c_str());
     stringstream strStream;
@@ -48,9 +52,7 @@ void Process::parseFile(string &fileName) {
     // Empties and clear string stream
     strStream.str("");
     strStream.clear();
-
-    // To erase 3 junk character
-    //fileContent.erase(0,3);
+    fileStream.close();
 
     #ifdef DEBUG
         cout << "Raw file output" << endl;
@@ -99,8 +101,8 @@ void Process::parseFile(string &fileName) {
         while(fileContent[j] != '\n')
             ++j;
 
-        if(fileContent.find("\"") != string::npos){
-            charStart = fileContent.substr(k,j).find("\"")+1;
+        if(fileContent.substr(k,j-k).find("\"") != string::npos){
+            charStart = fileContent.substr(k,j-k).find("\"")+1;
             memTemp.push_back(Memory(index,fileContent.c_str()[charStart]));
 
         }
@@ -126,7 +128,6 @@ void Process::parseFile(string &fileName) {
         setMemory(memTemp[i].getIndex(), memTemp[i].getValue(), basePointer, limitPointer);
     }
 
-    printMemory();
     memTemp.clear();
 
     #ifdef DEBUG
@@ -134,11 +135,11 @@ void Process::parseFile(string &fileName) {
         printMemory();
     #endif
 
-    temp = INSTR_START;
+    cout << instructionTemp << endl;
     int firstOperand,secondOperand,secondSpace;
     string operand;
     char tt;
-    for (int l = instructionStart + (int) (temp.length() + 2); l < fileContent.size(); ) {
+    for (int l = instructionStart + (int) (instructionTemp.length() + 2); l < fileContent.size(); ) {
         operand.clear();
         spaceToJump = 0;
         secondSpace = 0;
@@ -155,127 +156,128 @@ void Process::parseFile(string &fileName) {
             operand.push_back(tt);
             ++i;
         }
-        temp = fileContent.substr(l,j-l);
+        instructionTemp = fileContent.substr(l,j-l);
+        cout << " " << instructionTemp << endl;
 
-        if (temp.find("SET") != string::npos){
-            temp = "SET";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
+        if (instructionTemp.find("SET") != string::npos){
+            instructionTemp = "SET";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
                 secondSpace = (int) log10(abs(firstOperand));
             }
             if(firstOperand < 0)
                 ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace+1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace+1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
         }
-        else if (temp.find("CPYI2") != string::npos){
-            temp = "CPYI2";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
-            if (firstOperand != 0) {
-                secondSpace = (int) log10(abs(firstOperand));
-            }
-
-            if(firstOperand < 0)
-                ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace + 1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
-        }
-
-        else if (temp.find("CPYI") != string::npos ){
-            temp = "CPYI";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
+        else if (instructionTemp.find("CPYI2") != string::npos){
+            instructionTemp = "CPYI2";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
                 secondSpace = (int) log10(abs(firstOperand));
             }
 
             if(firstOperand < 0)
                 ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace + 1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace + 1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
         }
 
-        else if (temp.find("CPY") != string::npos){
-            temp = "CPY";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
+        else if (instructionTemp.find("CPYI") != string::npos ){
+            instructionTemp = "CPYI";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
                 secondSpace = (int) log10(abs(firstOperand));
             }
 
             if(firstOperand < 0)
                 ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace + 1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace + 1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
         }
 
-        else if (temp.find("ADD") != string::npos && temp.find("ADDI") == string::npos){
-            temp = "ADD";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
+        else if (instructionTemp.find("CPY") != string::npos){
+            instructionTemp = "CPY";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
                 secondSpace = (int) log10(abs(firstOperand));
             }
 
             if(firstOperand < 0)
                 ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace + 1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace + 1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
         }
 
-        else if (temp.find("ADDI") != string::npos){
-            temp = "ADDI";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
+        else if (instructionTemp.find("ADD") != string::npos && instructionTemp.find("ADDI") == string::npos){
+            instructionTemp = "ADD";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
                 secondSpace = (int) log10(abs(firstOperand));
             }
 
             if(firstOperand < 0)
                 ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace + 1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace + 1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
         }
 
-        else if (temp.find("SUBI") != string::npos){
-            temp = "SUBI";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
+        else if (instructionTemp.find("ADDI") != string::npos){
+            instructionTemp = "ADDI";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
                 secondSpace = (int) log10(abs(firstOperand));
             }
 
             if(firstOperand < 0)
                 ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace + 1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace + 1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
         }
 
-        else if (temp.find("JIF") != string::npos){
-            temp = "JIF";
-            firstOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3]);
+        else if (instructionTemp.find("SUBI") != string::npos){
+            instructionTemp = "SUBI";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
+            if (firstOperand != 0) {
+                secondSpace = (int) log10(abs(firstOperand));
+            }
+
+            if(firstOperand < 0)
+                ++secondSpace;
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace + 1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
+        }
+
+        else if (instructionTemp.find("JIF") != string::npos){
+            instructionTemp = "JIF";
+            firstOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3]);
             if (firstOperand != 0) {
                 secondSpace = (int) log10(abs(firstOperand));
             }
             if(firstOperand < 0)
                 ++secondSpace;
-            secondOperand = atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3 + secondSpace + 1]);
-            instructions.push_back(Instruction(index,temp,firstOperand,secondOperand));
+            secondOperand = atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3 + secondSpace + 1]);
+            instructions.push_back(Instruction(index,instructionTemp,firstOperand,secondOperand));
         }
 
-        else if(temp.find("HLT") != string::npos){
-            temp = "HLT";
-            instructions.push_back(Instruction(index,temp));
+        else if(instructionTemp.find("HLT") != string::npos){
+            instructionTemp = "HLT";
+            instructions.push_back(Instruction(index,instructionTemp));
         }
-        else if (temp.find("CALL PRN") != string::npos){
-            temp = "CALL PRN";
-            instructions.push_back(Instruction(index,temp,atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3])));
+        else if (instructionTemp.find("CALL PRN") != string::npos){
+            instructionTemp = "CALL PRN";
+            instructions.push_back(Instruction(index,instructionTemp,atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3])));
         }
-        else if(temp.find("CALL FORK") != string::npos){
-            temp = "CALL FORK";
-            instructions.push_back(Instruction(index,temp));
+        else if(instructionTemp.find("CALL FORK") != string::npos){
+            instructionTemp = "CALL FORK";
+            instructions.push_back(Instruction(index,instructionTemp));
         }
-        else if(temp.find("CALL EXEC") != string::npos){
-            temp = "CALL EXEC";
-            instructions.push_back(Instruction(index,temp,atoi(&fileContent.c_str()[l + temp.length() + spaceToJump + 3])));
+        else if(instructionTemp.find("CALL EXEC") != string::npos){
+            instructionTemp = "CALL EXEC";
+            instructions.push_back(Instruction(index,instructionTemp,atoi(&fileContent.c_str()[l + instructionTemp.length() + spaceToJump + 3])));
         }
         else{
-            cerr << "Unknown instruction " << temp << endl;
+            cerr << "Unknown instruction " << instructionTemp << endl;
             exit(-1);
         }
 
@@ -292,11 +294,12 @@ void Process::parseFile(string &fileName) {
 
 }
 
-void Process::cpuRun() {
-    bool flag = true,isLastJump = false;
+char Process::cpuRun() {
+    bool flag = true,isLastJump = false,isBlocked = false;
     int pCounter;
-    printInstructionList();
+
     while(flag){
+        ++elapsedTime;
         pCounter = getMemory(0,basePointer,limitPointer);
         if(!isLastJump) {
             setMemory(0,getMemory(0,basePointer,limitPointer)+ 1,basePointer,limitPointer);
@@ -345,16 +348,33 @@ void Process::cpuRun() {
             isLastJump = funcJIF(instructions[pCounter]);
         }
         else if(instructions[pCounter].getInstruction().find("CALL PRN") != string::npos) {
-           
+            funcPRN(instructions[pCounter]);
+            isBlocked = true;
+            break;
+        }
+        else if(instructions[pCounter].getInstruction().find("CALL EXEC") != string::npos) {
+            funcEXEC(instructions[pCounter]);
+            isBlocked = true;
+            break;
+        }
+        else if(instructions[pCounter].getInstruction().find("CALL FORK") != string::npos) {
+            funcFORK(instructions[pCounter]);
+            isBlocked = true;
+            break;
         }
         else if(instructions[pCounter].getInstruction().find("HLT") != string::npos) {
-
+            isFinished = true;
             break;
         }
     }
-    isFinished = true;
-    cout << "Program has finished memoryData looks like this "<< endl;
-    printMemory();
+    if(!isBlocked) {
+        cout << "Program has finished memoryData looks like this "<< endl;
+        printMemory();
+    }
+    if(isBlocked)
+        return 'b';
+    if (isFinished)
+        return 'f';
 }
 
 Instruction &Process::getInstruction(int index) {
@@ -429,3 +449,30 @@ bool Process::funcHLT(const Instruction &inst) {
 bool Process::isHalted() {
     return isFinished;
 }
+
+bool Process::
+funcFORK(const Instruction &inst) {
+    int control = CPU::addProcess(sourceFileName, mode, getMemory(0,basePointer,limitPointer)+2);
+    if(control != 0)
+        setMemory(4,control,basePointer,limitPointer);
+
+    return true;
+}
+
+bool Process::funcEXEC(const Instruction &inst) {
+    string temp = "";
+    for(int i= inst.getFirstOperand(); i < limitPointer; ++i){
+        if(getMemory(i,basePointer,limitPointer) != '0')
+            temp += getMemory(i,basePointer,limitPointer);
+        else
+            break;
+    }
+    cout << temp << " temp" <<endl;
+    return true;
+}
+
+bool Process::funcPRN(const Instruction &inst) {
+    cout << "Result of prn "<< getMemory(inst.getFirstOperand(),basePointer,limitPointer) << endl;
+    return false;
+}
+

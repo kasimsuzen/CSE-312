@@ -27,7 +27,7 @@ public:
     ~Process();
     void parseFile(string &filename);
     void printInstructionList();
-    void cpuRun();
+    char cpuRun();
     Instruction& getInstruction(int index);
     bool isHalted();
 
@@ -47,6 +47,7 @@ public:
 private:
     vector<Instruction> instructions;
     int mode,basePointer,limitPointer,SysCallResult;
+    string sourceFileName;
     bool isFinished;
 };
 

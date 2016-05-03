@@ -30,10 +30,11 @@ public:
     CPU(int md);
     ~CPU();
 
-    void tick();
+    char tick(Process &proc);
     bool isHalted();
+    void run();
 
-    static bool addProcess(string fileName, int pid, int md, int pcValue=0);
+    static int addProcess(string fileName, int md, int pcValue);
     bool updateProcessList();
     static vector<Memory> memoryData;
     static int indexOfMem;

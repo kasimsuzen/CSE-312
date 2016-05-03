@@ -18,8 +18,8 @@ int main(int argc,char ** argv) {
 
     printMemory();
     CPU cpu(atoi(argv[3]));
-    cpu.addProcess(filename,0,2);
-    cpu.tick();
+    cpu.addProcess(filename, 2, 0);
+    cpu.run();
 /*
 
     Process sim(filename, atoi(argv[3]));
