@@ -6,7 +6,14 @@
 #include <cstdlib>
 #include "Simulation.h"
 #include "Instruction.h"
-#include "Memory.h"
+#include "MemoryCell.h"
+#include "Disk.h"
+#include "RAM.h"
+#include "PageTable.h"
+
+Disk myDisk;
+RAM myRAM;
+PageTable memoryManager;
 
 using namespace std;
 void usage();
@@ -29,4 +36,5 @@ void usage(){
     cout << "Mode 0 runs all instructions and show last state of memory" << endl;
     cout << "Mode 1 run one instruction and show memory map all instructions finished"<< endl;
     cout << "Mode 2 runs one instruction shows memory map and wait to press a key " << endl;
+    exit (-1);
 }
